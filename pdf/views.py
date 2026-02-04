@@ -64,12 +64,12 @@ def file_list(request):
 
     Indexer.Indexer.update(not pdf_only)
 
-    last_update = File.objects.order_by('-date')[0]
-    files = File.objects
+    files = File.objects.order_by('-date')
+    last_update = files[0]
     if pdf_only:
         files = files.filter(extention="pdf")
     context = {
-        "files": files.order_by('-date'),
+        "files": files,
         "last_updated_tupple": last_update,
         "pdf_only": pdf_only
     }
