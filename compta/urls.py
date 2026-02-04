@@ -27,6 +27,7 @@ urlpatterns = [
     path("pieces", views.piece_list, name="pieces_list"),
     path("piece/<str:md5>", views.piece_associate_banque, name="piece_associate_banque"),
     path("files", views.file_list, name="files_list"),
+    path("check", views.file_list, name="files_check"),
     path("update", views.file_update, name="files_update"),
     path("pdf/<str:md5>", views.pdf_edit, name="pdf_edit"),
     path("associate/<str:id>", views.piece_pre_associate, name="piece_pre_associate"),

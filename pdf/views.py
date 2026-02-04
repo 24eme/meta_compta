@@ -75,6 +75,17 @@ def file_list(request):
     }
     return render(request, "file_list.html", context)
 
+def file_check(request):
+    files_id = File.objects.values('id')
+    for id in files_id:
+        try:
+             f = File.objects.filter(id=id)
+             f.date
+        except:
+            raise Exception("error with file record "+str(id))
+    return HttpResponse("Pas d'erreur trouvé")
+
+
 def pdf_edit(request, md5):
     files = File.objects.filter(md5=md5).order_by('-mtime')
     file = files[0]
