@@ -56,7 +56,7 @@ def piece_list(request):
     return render(request, "piece_list.html", context)
 
 def file_update(request):
-    Indexer.Indexer.update()
+    Indexer.Indexer.update(False, True)
     return HttpResponse("updated")
 
 def file_list(request):
@@ -76,14 +76,14 @@ def file_list(request):
     return render(request, "file_list.html", context)
 
 def file_check(request):
-    files_id = File.objects.values('id')
-    for id in files_id:
+    filenames = File.objects.values('filename')
+    for fn in filenames:
         try:
-             f = File.objects.filter(id=id)
+             f = File.objects.filter(filename=fn['filename']).first()
              f.date
-        except:
-            raise Exception("error with file record "+str(id))
-    return HttpResponse("Pas d'erreur trouvé")
+        except Exception as e:
+            raise Exception("error with file record "+str(fn)+" "+str(e))
+    return HttpResponse("<p>Pas d'erreur trouvé</p><p><a href='/update'>Update Indexer</a></p>")
 
 
 def pdf_edit(request, md5):

@@ -34,9 +34,8 @@ class Indexer(object):
                 continue
             try:
                 meta[m] = meta[m].encode('iso8859-1').decode('utf-8')
-            except:
-                print(meta)
-                raise
+            except Exception as e:
+                raise Exception("Erreur d'indexation "+str(meta)+" "+str(e))
         return meta
 
     @staticmethod
