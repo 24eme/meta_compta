@@ -23,7 +23,7 @@
       {% if metafile.piece.facture_date %}
       {{ metafile.piece.facture_date|date:"d/m/Y" }}
       {% else %}
-      {{ metafile.file.date }}
+      {{ metafile.file.date|date:"d/m/Y" }}
       {% endif %}
     </div></td>
     <td>

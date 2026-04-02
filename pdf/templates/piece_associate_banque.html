@@ -7,7 +7,7 @@
     <th colspan="4"><h3>Piece</h3></th>
   </tr>
   <tr>
-    <th><div>{% if piece and piece.facture_date %}{{ piece.facture_date|date:"d/m/Y" }}{% else %}{{ file.date }}{% endif %}</div></th>
+    <th><div>{% if piece and piece.facture_date %}{{ piece.facture_date|date:"d/m/Y" }}{% else %}{{ file.date|date:"d/m/Y" }}{% endif %}</div></th>
     <th>
       <div>
         {% if piece.facture_client %}
