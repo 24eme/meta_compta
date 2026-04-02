@@ -11,7 +11,7 @@
     <th>
       <div>
         {% if piece.facture_client %}
-        {{ piece.facture_client }}
+        {{ piece.facture_author }} / {{ piece.facture_client }}
         {% if piece.facture_identifier %}
         - Facture {{ piece.facture_identifier }}
         {% endif %}
