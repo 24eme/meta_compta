@@ -19,7 +19,7 @@
       <th class="col-1">Date</th>
       <th class="col-9">Nom du fichier</th>
       <th class="col-1">Statut</th>
-      <th class="col-1"></th>
+      <th class=""></th>
     </tr>
   </thead>
 {% for f in files %}
@@ -46,11 +46,11 @@
       </td>
       <td>
         {% if not f.piece_id %}
-        <a href="./pdf/{{ f.md5 }}">Editer cette pièce</a>
+        <a href="./pdf/{{ f.md5 }}">Editeré&nbsp;cette&nbsp;pièce</a>
         {% elif f.piece.paiement_proof %}
-        <a href="./pdf/{{ f.md5 }}">Editer cette pièce</a>
+        <a href="./pdf/{{ f.md5 }}">Editer&nbsp;cette&nbsp;pièce</a>
         {% else %}
-        <a href="./piece/{{ f.md5 }}">Rapprocher cette pièce</a>
+        <a href="./piece/{{ f.md5 }}">Rapprocher&nbsp;cette&nbsp;pièce</a>
         {% endif %}
       </td>
       <td>

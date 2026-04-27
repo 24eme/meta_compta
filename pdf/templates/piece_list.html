@@ -15,21 +15,23 @@
 <table class="table table-striped">
   <thead>
     <tr>
-      <th class="col-1">Client / Date</th>
-      <th class="col-9">Libellé</th>
+      <th class="col-1">Date</th>
+      <th class="col-3">Client</th>
+      <th class="col-7">Libellé</th>
+      <th class="col-1">Montant</th>
       <th class="col-1">Statut</th>
-      <th class="col-1"></th>
+      <th class=""></th>
     </tr>
   </thead>
 {% for p in pieces %}
     <tr class="{% if p.banque_id %}table-success{% endif %}">
+      <td>{{ p.facture_date|date:"d/m/Y" }}</td>
       <td>
         <div class="fw-bold">
             <a href="?author={{ p.facture_author }}">{{ p.facture_author }}</a>
              ->
             <a href="?client={{ p.facture_client }}">{{ p.facture_client }}</a>
         </div>
-        <div class="">{{ p.facture_date|date:"d/m/Y" }}</div>
       </td>
       <td>
         <div> Facture n° {{ p.facture_identifier }} </div>
