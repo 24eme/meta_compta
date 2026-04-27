@@ -26,8 +26,13 @@
         </a>
       </li>
       <li>
-        <a href="/pieces?unpaid=true" class="nav-link {% if request.resolver_match.url_name == 'pieces_list' %}active{% endif %}">
-          Factures non rapprochées
+        <a href="/pieces?unpaid=true" class="nav-link {% if request.resolver_match.url_name == 'pieces_list' and request.GET.unpaid == 'true' %}active{% endif %}">
+          Factures à rapprocher
+        </a>
+      </li>
+      <li>
+        <a href="/pieces" class="nav-link {% if request.resolver_match.url_name == 'pieces_list' and request.GET.unpaid != 'true' %}active{% endif %}">
+          Toutes les factures
         </a>
       </li>
       <li>
