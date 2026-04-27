@@ -17,7 +17,7 @@
     <tr>
       <th class="col-1">Date</th>
       <th class="col-3">Client</th>
-      <th class="col-7">Libellé</th>
+      <th class="col-5">Libellé</th>
       <th class="col-1">Montant</th>
       <th class="col-1">Statut</th>
       <th class=""></th>
@@ -33,10 +33,10 @@
             <a href="?client={{ p.facture_client }}">{{ p.facture_client }}</a>
         </div>
       </td>
-      <td>
+      <td style="overflow-wrap: anywhere;">
         <div> Facture n° {{ p.facture_identifier }} </div>
-        <div class="">{{ p.facture_libelle }}</div>
-        <div class="">{{ p.filename }}</div>
+        <div>{{ p.facture_libelle }}</div>
+        <div>{{ p.filename }}</div>
       </td>
       <td>
         <div class="text-end fw-bold">{{ p.facture_prix_ttc|floatformat:2 }}€</div>
@@ -53,13 +53,11 @@
         <div> &nbsp; </div>
       </td>
       <td>
-        <div>
           {% if not p.banque_id %}
           <a href="./piece/{{ p.md5 }}">Rapprocher</a>
           {% else %}
-          <a href="./pdf/{{ p.md5 }}">Voir la pièce</a>
+          <a href="./pdf/{{ p.md5 }}">Voir&nbsp;la&nbsp;pièce</a>
           {% endif %}
-      </div>
 
       </td>
     </tr>
