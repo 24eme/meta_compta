@@ -293,8 +293,16 @@ class Indexer(object):
         if not force and last and (updated_at - last) < 15 * 60:
             return False
 
-        with requests.get(csv_url, stream=True) as r:
-            csv_raw = StringIO(r.text)
+        csv_raw = ''
+        if csv_url.find('http') >= 0:
+            with requests.get(csv_url, stream=True) as r:
+                csv_raw = StringIO(r.text)
+        else:
+            with open(csv_url, 'r') as r:
+                csv_raw = r.readlines()
+        print(['csv_raw', csv_raw])
+
+        if csv_raw:
             csv_reader = csv.reader(csv_raw, delimiter=",")
             for csv_row in csv_reader:
                 if (csv_row[0] == 'date') or (len(csv_row) < 7):
@@ -454,7 +462,7 @@ class Indexer(object):
             if os.environ.get('VERBOSE', None):
                 print("Index: indexing banque")
 
-            need_consolidate = Indexer.index_banque('https://raw.githubusercontent.com/24eme/banque/master/data/history.csv', force, conn) or need_consolidate
+            need_consolidate = Indexer.index_banque(os.environ.get('COMPTA_BANQUE_URL_HISTORY'), force, conn) or need_consolidate
 
             if need_consolidate:
                 Indexer.consolidate(conn)
