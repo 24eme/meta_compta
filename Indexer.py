@@ -301,14 +301,13 @@ class Indexer(object):
                     continue
                 csv_row[1] = re.sub(r'  +', ' ', csv_row[1])
                 csv_row[7] = re.sub(r'  +', ' ', csv_row[7])
-                sql = "SELECT id FROM pdf_banque WHERE date = \"%s\" AND raw = \"%s\";" % (csv_row[0], csv_row[1])
+                sql = "SELECT id FROM pdf_banque WHERE date = \"%s\" AND raw = \"%s\" AND amount = %s;" % (csv_row[0], csv_row[1], csv_row[2])
                 res = conn.execute(sql)
                 row = res.fetchone()
                 if not row or not row[0]:
-                    sql = "INSERT INTO pdf_banque (date, raw, ctime) VALUES (\"%s\", \"%s\" , \"%s\")" % (csv_row[0], csv_row[1], imported_at)
+                    sql = "INSERT INTO pdf_banque (date, raw, amount, ctime) VALUES (\"%s\", \"%s\" , %s, \"%s\")" % (csv_row[0], csv_row[1], csv_row[2], imported_at)
                     conn.execute(sql)
                 sql = "UPDATE pdf_banque SET "
-                sql = sql + 'amount = %s, ' % csv_row[2]
                 sql = sql + 'type = "%s", ' % csv_row[3]
                 sql = sql + 'banque_account = "%s", ' % csv_row[4]
                 sql = sql + 'rdate = "%s", ' % csv_row[5]
@@ -318,7 +317,7 @@ class Indexer(object):
                 if category:
                     sql = sql + 'piece_category = "%s", ' % category
                 sql = sql + 'mtime = %d' % updated_at
-                sql = sql + " WHERE date = \"%s\" AND raw = \"%s\";" % (csv_row[0], csv_row[1])
+                sql = sql + " WHERE date = \"%s\" AND raw = \"%s\" AND amount = %s;" % (csv_row[0], csv_row[1], csv_row[2])
                 conn.execute(sql)
 
         if last:
@@ -334,7 +333,7 @@ class Indexer(object):
 
     @staticmethod
     def consolidate(conn):
-        res = conn.execute("SELECT id, date, raw, label FROM pdf_banque");
+        res = conn.execute("SELECT id, date, raw, amount, label FROM pdf_banque");
         proof2banqueid = {}
 
 
@@ -344,9 +343,9 @@ class Indexer(object):
 
         for row in res:
             if row['raw']:
-                proof2banqueid[re.sub(r'  *', ' ', row['raw']) + 'ø' + row['date']] = row['id'];
+                proof2banqueid[re.sub(r'  *', ' ', row['raw']) + 'ø' + row['date'] + "ø%0.2f"  % (abs(float(row['amount'])))] = row['id'];
             if row['label']:
-                proof2banqueid[re.sub(r'  *', ' ', row['label']) + 'ø' +  row['date']] = row['id'];
+                proof2banqueid[re.sub(r'  *', ' ', row['label']) + 'ø' +  row['date'] + "ø%0.2f"  % (abs(float(row['amount'])))] = row['id'];
 
         md52pid = {}
         res = conn.execute("SELECT id, paiement_proof, paiement_date, facture_prix_ttc, fullpath, md5, piece_category FROM pdf_piece")
@@ -359,6 +358,9 @@ class Indexer(object):
                 continue
             proofs = row['paiement_proof'].split('|')
             dates = row['paiement_date'].split('|')
+            paiement_amount = ''
+            if row['facture_prix_ttc']:
+                paiement_amount =  "%0.2f"  % (abs(float(row['facture_prix_ttc'])))
             if len(proofs) > 1 and len(proofs) != len(dates):
                 continue
             for i in range(0,len(dates)):
@@ -373,16 +375,16 @@ class Indexer(object):
                 if not paiement_proof:
                     continue
                 if paiement_date:
-                    banqueid = proof2banqueid.get(paiement_proof + 'ø' + paiement_date)
+                    banqueid = proof2banqueid.get(paiement_proof + 'ø' + paiement_date + 'ø' + paiement_amount)
                 if not banqueid:
                     ids = []
                     for pkey in proof2banqueid:
-                        (label, date) = pkey.split('ø')
+                        (label, date, amount) = pkey.split('ø')
                         label = re.sub(r'  *', ' ', label)
                         label = re.sub(r'^  *', '', label)
                         label = re.sub(r'  *$', '', label)
                         if label.find(paiement_proof) != -1 or paiement_proof.find(label) != -1:
-                            if date == paiement_date:
+                            if date == paiement_date and amount == paiement_amount:
                                 ids.append(proof2banqueid[pkey])
                     if len(ids) == 1:
                         banqueid = ids[0]
