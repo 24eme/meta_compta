@@ -475,6 +475,8 @@ class Indexer(object):
 
     @staticmethod
     def get_category(libelle, amont, author=None, client=None):
+        if os.environ.get('COMPTA_CATEGORY_LIBELLE_AUTRE') and libelle and re.search(os.environ.get('COMPTA_CATEGORY_LIBELLE_AUTRE'), libelle):
+            return "AUTRE"
         if os.environ.get('COMPTA_CATEGORY_LIBELLE_TVA') and libelle and re.search(os.environ.get('COMPTA_CATEGORY_LIBELLE_TVA'), libelle):
             return "TVA"
         if os.environ.get('COMPTA_CATEGORY_LIBELLE_SALAIRE') and libelle and re.search(os.environ.get('COMPTA_CATEGORY_LIBELLE_SALAIRE'), libelle):
