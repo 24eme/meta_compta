@@ -215,6 +215,19 @@ class Indexer(object):
         if meta.get('compta:export_date'):
             sql_update = sql_update + ", compta_export_date = \"%s\" " % meta['compta:export_date']
             need_update = True
+        if meta.get('facture:category'):
+            sql_update = sql_update + ", piece_category = \"%s\" " % meta['facture:category']
+            need_update = True
+        elif meta.get('piece:category'):
+            sql_update = sql_update + ", piece_category = \"%s\" " % meta['piece:category']
+            need_update = True
+        else:
+            category = ''
+            if meta.get('facture:author') and meta.get('facture:client') and meta.get('facture:libelle'):
+                category = Indexer.get_category(meta['facture:libelle'], None, meta['facture:author'], meta['facture:client'])
+            if category:
+                sql_update = sql_update + ", piece_category = \"%s\" " % category
+                need_update = True
         sql_update = sql_update + " WHERE fullpath = \"%s\" OR md5 = \"%s\"" % (file, meta['md5'])
         sql_update = sql_update + " ; "
 
@@ -301,6 +314,9 @@ class Indexer(object):
                 sql = sql + 'rdate = "%s", ' % csv_row[5]
                 sql = sql + 'vdate = "%s", ' % csv_row[6]
                 sql = sql + 'label = "%s", ' % csv_row[7]
+                category = Indexer.get_category(csv_row[1], csv_row[2], None)
+                if category:
+                    sql = sql + 'piece_category = "%s", ' % category
                 sql = sql + 'mtime = %d' % updated_at
                 sql = sql + " WHERE date = \"%s\" AND raw = \"%s\";" % (csv_row[0], csv_row[1])
                 conn.execute(sql)
@@ -333,7 +349,7 @@ class Indexer(object):
                 proof2banqueid[re.sub(r'  *', ' ', row['label']) + 'ø' +  row['date']] = row['id'];
 
         md52pid = {}
-        res = conn.execute("SELECT id, paiement_proof, paiement_date, fullpath, md5 FROM pdf_piece")
+        res = conn.execute("SELECT id, paiement_proof, paiement_date, facture_prix_ttc, fullpath, md5, piece_category FROM pdf_piece")
         for row in res:
             md52pid[row['md5']] = row['id']
             banqueid = None
@@ -374,6 +390,9 @@ class Indexer(object):
                     conn.execute("UPDATE pdf_piece SET banque_id = %d WHERE id = %d" % (banqueid,  row['id']) )
                     conn.execute("UPDATE pdf_banque SET piece_id = %d WHERE id = %d" % (row['id'], banqueid) )
                     conn.execute("UPDATE pdf_file SET date = \"%s\" WHERE date IS NULL AND md5 = \"%s\"" % (paiement_date, row['md5']))
+                    if row['piece_category']:
+                        conn.execute('UPDATE pdf_banque SET piece_category = "%s" WHERE id = %d' % (row['piece_category'], banqueid) )
+
                 else:
                     paiement_facture_id = re.sub(r'[^0-9]*', '', paiement_proof)
                     if paiement_facture_id:
@@ -413,8 +432,8 @@ class Indexer(object):
                     print("Index: creating database")
 
                 conn.execute("CREATE TABLE pdf_file (id INTEGER PRIMARY KEY, filename TEXT, fullpath TEXT UNIQUE, extention TEXT, size INTEGER, date DATE, ctime INTEGER, mtime INTEGER, md5 TEXT, piece_id INTEGER);");
-                conn.execute("CREATE TABLE pdf_piece (id INTEGER PRIMARY KEY, filename TEXT, fullpath TEXT UNIQUE, extention TEXT, size INTEGER, ctime INTEGER, mtime INTEGER, md5 TEXT, facture_type TEXT, facture_author TEXT, facture_client TEXT, facture_identifier TEXT, facture_date DATE, facture_libelle TEXT, facture_prix_ht FLOAT, facture_prix_tax FLOAT, facture_prix_ttc FLOAT, facture_devise TEXT, paiement_comment TEXT, paiement_date DATE, paiement_proof TEXT, banque_id INTEGER,      compta_exercice TEXT, compta_export_date TEXT, CONSTRAINT constraint_name UNIQUE (md5) );");
-                conn.execute("CREATE TABLE pdf_banque (id INTEGER PRIMARY KEY, date DATE, raw TEXT, amount FLOAT, type TEXT, banque_account TEXT, rdate DATE, vdate DATE, label TEXT, piece_id INTEGER, ctime INTEGER, mtime INTEGER, CONSTRAINT constraint_name UNIQUE (date, raw) );");
+                conn.execute("CREATE TABLE pdf_piece (id INTEGER PRIMARY KEY, filename TEXT, fullpath TEXT UNIQUE, extention TEXT, size INTEGER, ctime INTEGER, mtime INTEGER, md5 TEXT, facture_type TEXT, facture_author TEXT, facture_client TEXT, facture_identifier TEXT, facture_date DATE, facture_libelle TEXT, facture_prix_ht FLOAT, facture_prix_tax FLOAT, facture_prix_ttc FLOAT, facture_devise TEXT, paiement_comment TEXT, paiement_date DATE, paiement_proof TEXT, banque_id INTEGER, compta_exercice TEXT, compta_export_date TEXT, piece_category TEXT, CONSTRAINT constraint_name UNIQUE (md5) );");
+                conn.execute("CREATE TABLE pdf_banque (id INTEGER PRIMARY KEY, date DATE, raw TEXT, amount FLOAT, type TEXT, banque_account TEXT, rdate DATE, vdate DATE, label TEXT, piece_id INTEGER, ctime INTEGER, mtime INTEGER, piece_category TEXT, CONSTRAINT constraint_name UNIQUE (date, raw, amount) );");
 
 
             if os.environ.get('VERBOSE', None):
@@ -443,6 +462,26 @@ class Indexer(object):
     def update(with_images = False, force = False):
         for subdir in os.environ.get('COMPTA_PDF_COMPTA_SUBDIR').split('|'):
             Indexer.update_path(os.environ.get('COMPTA_PDF_BASE_PATH') + '/' + subdir, with_images, force)
+
+    @staticmethod
+    def get_category(libelle, amont, author=None, client=None):
+        if os.environ.get('COMPTA_CATEGORY_LIBELLE_TVA') and libelle and re.search(os.environ.get('COMPTA_CATEGORY_LIBELLE_TVA'), libelle):
+            return "TVA"
+        if os.environ.get('COMPTA_CATEGORY_LIBELLE_SALAIRE') and libelle and re.search(os.environ.get('COMPTA_CATEGORY_LIBELLE_SALAIRE'), libelle):
+            return "SALAIRE"
+        if os.environ.get('COMPTA_CATEGORY_LIBELLE_NOTEDEFRAIS') and libelle and re.search(os.environ.get('COMPTA_CATEGORY_LIBELLE_NOTEDEFRAIS'), libelle):
+            return "NOTEDEFRAIS"
+        if os.environ.get('COMPTA_CATEGORY_LIBELLE_DEPENSE') and libelle and re.search(os.environ.get('COMPTA_CATEGORY_LIBELLE_DEPENSE'), libelle):
+            return "DEPENSE"
+        if os.environ.get('COMPTA_CATEGORY_AUTHOR_FACTURE') and author and re.search(os.environ.get('COMPTA_CATEGORY_AUTHOR_FACTURE'), author):
+            return "FACTURE"
+        if os.environ.get('COMPTA_CATEGORY_AUTHOR_FACTURE') and client and re.search(os.environ.get('COMPTA_CATEGORY_AUTHOR_FACTURE'), client):
+            return "DEPENSE"
+        if amont and float(amont) > 0:
+            return "FACTURE"
+        if amont and float(amont) < 0:
+            return "DEPENSE"
+        return ""
 
 def main():
     Indexer.update_path(sys.argv[1], True, True)

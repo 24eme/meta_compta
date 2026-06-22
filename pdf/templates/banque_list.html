@@ -16,14 +16,14 @@
     </tr>
   </thead>
 {% for b in banques %}
-    <tr class="{% if b.piece_id %}table-success{% endif %}">
+    <tr class="{% if b.isSuccess %}table-success{% endif %}">
       <td>
         <div class="">{{ b.date|date:"d/m/Y" }}</div>
         <div> &nbsp; </div>
       </td>
       <td>
         <div class="fw-bold">{{ b.label }}</div>
-        <div class='text-muted'>{{ b.banque_account }}</div>
+        <div class='text-muted'>{{ b.piece_category }} - {{ b.banque_account }}</div>
       </td>
       <td>
         <div class="text-end fw-bold">{{ b.amount|floatformat:2 }} €</div>
