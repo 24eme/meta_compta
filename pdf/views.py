@@ -243,3 +243,67 @@ def banque_associate_file(request, banque_id):
 
     pieces = dict(sorted(pieces.items(), key=lambda x: x[1]['distance']))
     return render(request, "banque_associate_file.html", {"pieces": pieces, "banque": banque})
+
+
+def stats(request):
+    data = {
+        "depenses_montant": 0,
+        "depenses_objs": [],
+        "factures_montant": 0,
+        "factures_objs": [],
+        "tva": 0,
+        "taxe_collectee": 0,
+        "taxe_deductible": 0
+    }
+    date_debut = "2024-07-01"
+    date_fin   = "2025-06-31"
+
+    banques = Banque.objects.raw('SELECT * from pdf_banque where date >= "%s" and date <= "%s" and piece_category IN ("DEPENSE", "SALAIRE", "TVA")' % (date_debut, date_fin) )
+    for b in banques:
+        if b.piece_category == "TVA":
+            data['tva'] += b.amount
+            continue
+        if b.piece_category == "DEPENSE":
+            data['depenses_objs'].append(b)
+            if b.piece_id:
+                p = b.getPiece()
+                if p:
+                    if p.facture_prix_ht:
+                        data['depenses_montant'] += p.facture_prix_ht
+                        if p.facture_prix_ttc:
+                            data['taxe_deductible'] += p.facture_prix_ttc - p.facture_prix_ht
+                            continue
+                    if p.facture_prix_tax:
+                        data['taxe_deductible'] += p.facture_prix_tax
+                    continue
+            if b.amount:
+                data['depenses_montant'] += b.amount * -1
+            continue
+        if b.piece_category == "SALAIRE":
+            data['depenses_objs'].append(b)
+            data['depenses_montant'] += b.amount * -1
+
+    factures = Piece.objects.raw('SELECT * from pdf_piece where facture_date >= "%s" and facture_date <= "%s" and piece_category IN ("FACTURE")' % (date_debut, date_fin))
+    for f in factures:
+        data['factures_objs'].append(f)
+        if f.facture_prix_ht:
+            if f.facture_type == "AVOIR":
+                data['factures_montant'] += f.facture_prix_ht * -1
+            else:
+                data['factures_montant'] += f.facture_prix_ht
+        tax = 0
+        if f.facture_prix_tax:
+            tax = f.facture_prix_tax
+        elif f.facture_prix_ht and f.facture_prix_ttc:
+            tax = f.facture_prix_ttc - f.facture_prix_ht
+        if f.facture_type == "AVOIR":
+            tax *= -1
+        if tax:
+            data['taxe_collectee'] +=  tax
+    data['taxe_calculee'] = data['taxe_deductible'] - data['taxe_collectee']
+    data['taxe_equilibre'] = data['taxe_calculee'] - data['tva']
+
+    data['depenses_montant'] += data['taxe_equilibre']
+
+    print([data]);
+    return render(request, "stats.html", data)

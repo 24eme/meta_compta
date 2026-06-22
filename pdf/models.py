@@ -16,8 +16,12 @@ class Banque(models.Model):
 
     class Meta:
         unique_together = ('date', 'raw')
-    def getPieceMd5(self):
+
+    def getPiece(self):
         p = Piece.objects.get(pk=self.piece_id)
+        return p
+    def getPieceMd5(self):
+        p = self.getPiece()
         if not p:
             return None
         return p.md5

@@ -1,0 +1,5 @@
+<p>Dépenses : {{ depenses_montant|floatformat:2 }} (HT évalué)</p>
+
+<p>Facturés : {{ factures_montant|floatformat:2 }} HT</p>
+
+<p>TVA Collectée : {{ tva|floatformat:2 }}  (  {{ taxe_collectee|floatformat:2 }} - {{ taxe_deductible|floatformat:2 }} = {{ taxe_calculee|floatformat:2 }} => {{ taxe_equilibre|floatformat:2 }})</p>

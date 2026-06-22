@@ -31,6 +31,8 @@ urlpatterns = [
     path("update", views.file_update, name="files_update"),
     path("pdf/<str:md5>", views.pdf_edit, name="pdf_edit"),
     path("associate/<str:id>", views.piece_pre_associate, name="piece_pre_associate"),
+    path("stats", views.stats, name="stats"),
+
 
     re_path(r"^static/(?P<path>.*)$", staticfiles.views.serve),
 ]
