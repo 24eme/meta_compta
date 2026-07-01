@@ -209,6 +209,9 @@ class Indexer(object):
         if meta.get('paiement:proof'):
             sql_update = sql_update + ", paiement_proof = \"%s\" " % meta['paiement:proof']
             need_update = True
+        if meta.get('paiement:amount'):
+            sql_update = sql_update + ", paiement_amount = %s " % str(meta['paiement:amount']).replace(',', '.');
+            need_update = True
         if meta.get('paiement:date'):
             sql_update = sql_update + ", paiement_date = \"%s\" " % meta['paiement:date']
             need_update = True
@@ -356,7 +359,7 @@ class Indexer(object):
                 proof2banqueid[re.sub(r'  *', ' ', row['label']) + 'ø' +  row['date'] + "ø%0.2f"  % (abs(float(row['amount'])))] = row['id'];
 
         md52pid = {}
-        res = conn.execute("SELECT id, paiement_proof, paiement_date, facture_prix_ttc, fullpath, md5, piece_category FROM pdf_piece")
+        res = conn.execute("SELECT id, paiement_proof, paiement_date, paiement_amount, facture_prix_ttc, fullpath, md5, piece_category FROM pdf_piece")
         for row in res:
             md52pid[row['md5']] = row['id']
             banqueid = None
@@ -367,7 +370,9 @@ class Indexer(object):
             proofs = row['paiement_proof'].split('|')
             dates = row['paiement_date'].split('|')
             paiement_amount = ''
-            if row['facture_prix_ttc']:
+            if row['paiement_amount']:
+                paiement_amount =  "%0.2f"  % (abs(float(row['paiement_amount'])))
+            elif row['facture_prix_ttc']:
                 paiement_amount =  "%0.2f"  % (abs(float(row['facture_prix_ttc'])))
             if len(proofs) > 1 and len(proofs) != len(dates):
                 continue
@@ -442,7 +447,7 @@ class Indexer(object):
                     print("Index: creating database")
 
                 conn.execute("CREATE TABLE pdf_file (id INTEGER PRIMARY KEY, filename TEXT, fullpath TEXT UNIQUE, extention TEXT, size INTEGER, date DATE, ctime INTEGER, mtime INTEGER, md5 TEXT, piece_id INTEGER);");
-                conn.execute("CREATE TABLE pdf_piece (id INTEGER PRIMARY KEY, filename TEXT, fullpath TEXT UNIQUE, extention TEXT, size INTEGER, ctime INTEGER, mtime INTEGER, md5 TEXT, facture_type TEXT, facture_author TEXT, facture_client TEXT, facture_identifier TEXT, facture_date DATE, facture_libelle TEXT, facture_prix_ht FLOAT, facture_prix_tax FLOAT, facture_prix_ttc FLOAT, facture_devise TEXT, paiement_comment TEXT, paiement_date DATE, paiement_proof TEXT, banque_id INTEGER, compta_exercice TEXT, compta_export_date TEXT, piece_category TEXT, CONSTRAINT constraint_name UNIQUE (md5) );");
+                conn.execute("CREATE TABLE pdf_piece (id INTEGER PRIMARY KEY, filename TEXT, fullpath TEXT UNIQUE, extention TEXT, size INTEGER, ctime INTEGER, mtime INTEGER, md5 TEXT, facture_type TEXT, facture_author TEXT, facture_client TEXT, facture_identifier TEXT, facture_date DATE, facture_libelle TEXT, facture_prix_ht FLOAT, facture_prix_tax FLOAT, facture_prix_ttc FLOAT, facture_devise TEXT, paiement_comment TEXT, paiement_date DATE, paiement_proof TEXT, paiement_amount FLOAT, banque_id INTEGER, compta_exercice TEXT, compta_export_date TEXT, piece_category TEXT, CONSTRAINT constraint_name UNIQUE (md5) );");
                 conn.execute("CREATE TABLE pdf_banque (id INTEGER PRIMARY KEY, date DATE, raw TEXT, amount FLOAT, type TEXT, banque_account TEXT, rdate DATE, vdate DATE, label TEXT, piece_id INTEGER, ctime INTEGER, mtime INTEGER, piece_category TEXT, CONSTRAINT constraint_name UNIQUE (date, raw, amount) );");
 
 
