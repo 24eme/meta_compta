@@ -423,7 +423,7 @@ class Indexer(object):
 
     @staticmethod
     def update_path(path, with_images, force):
-        with sqlite3.connect('db/database.sqlite') as conn:
+        with sqlite3.connect('db/database.sqlite', timeout=10) as conn:
             conn.row_factory = sqlite3.Row
             need_consolidate = False
             last = 0
