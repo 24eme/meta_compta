@@ -21,7 +21,7 @@
   </p>
   <p class="px-5"><span class="text-muted">paiement:date</span><br/>{{ banque.date|date:"Y-m-d" }}</p>
   <p class="px-5"><span class="text-muted">paiement:proof</span><br/>{{ banque.raw }}</p>
-  <p class="px-5"><span class="text-muted">facture:TTC</span><br/>{{ banque.amount|floatformat:2 }}</p>
+  <p class="px-5"><span class="text-muted">paiement:amount</span><br/>{{ banque.amount|floatformat:2 }}</p>
 </div>
 {% else %}
 <div class="row">
@@ -68,7 +68,7 @@
   </p>
   <p class="px-5"><a class="btn" href="#" onclick="sendNewMeta('paiement:date','{{ banque.date|date:"Y-m-d" }}');return false;"><span class="text-muted">paiement:date</span><br/>{{ banque.date|date:"Y-m-d" }} <span class="text-muted"> 📤 </span></a></p>
   <p class="px-5"><a class="btn" href="#" onclick="sendNewMeta('paiement:proof','{{ banque.raw }}');return false;"><span class="text-muted">paiement:proof</span><br/>{{ banque.raw }} <span class="text-muted"> 📤 </span></a></p>
-  <p class="px-5"><a class="btn"><span class="text-muted">facture:TTC</span><br/>{{ banque.amount|floatformat:2 }}</a></p>
+  <p class="px-5"><a class="btn" href="#" onclick="sendNewMeta('paiement:amount','{{ banque.amount }}');return false;"><span class="text-muted">paiement:amount</span><br/>{{ banque.amount|floatformat:2 }} <span class="text-muted"> 📤 </span></a></p>
 </div>
 <div>
   {% if back_banque %}
