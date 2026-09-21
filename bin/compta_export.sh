@@ -10,7 +10,7 @@ if ! test "$export_date"; then
 fi
 exercice=$(date -d "$export_date $COMPTA_EXERCICE_DATE_AGO" "+%Y")
 
-curl http://$COMPTA_BIND/update
+curl -s http://$COMPTA_BIND/update > /dev/null
 
 echo "SELECT fullpath FROM pdf_piece WHERE compta_exercice = \""$exercice"\" AND compta_export_date IS NULL;" | sqlite3 db/database.sqlite | while read pdf;
 do
@@ -28,10 +28,15 @@ do
 	rm /tmp/pdf /tmp/pdf.new .meta.tmp
 done
 
-curl http://$COMPTA_BIND/update
+curl -s http://$COMPTA_BIND/update > /dev/null
 
 echo 'SELECT fullpath FROM pdf_piece WHERE compta_exercice = "'$exercice'" AND compta_export_date = "'$export_date'";' | sqlite3 db/database.sqlite | sed 's|'$COMPTA_PDF_BASE_PATH'||' | sed 's|^/||' > /tmp/export.list
+if test -s /tmp/export.list ; then
 cd $COMPTA_PDF_BASE_PATH
-mkdir -p $COMPTA_EXPORT_DIR
-echo zip $COMPTA_EXPORT_DIR"/"$export_date"_24eme_pieces-comptables.zip" $(cat /tmp/export.list | sed 's/^/"/' | sed 's/$/"/') | bash > /dev/null
-echo "Pièces exportées : "$COMPTA_EXPORT_DIR"/"$export_date"_24eme_pieces-comptables.zip"
+mkdir -p $COMPTA_EXPORT_DIR"/"$export_date"/.zip/"
+echo zip $COMPTA_EXPORT_DIR"/"$export_date"/.zip/"$export_date"_24eme_pieces-comptables.zip" $(cat /tmp/export.list | sed 's/^/"/' | sed 's/$/"/') | bash > /dev/null
+cd $COMPTA_EXPORT_DIR"/"$export_date"/" 2> /dev/null
+cp /tmp/export.list $COMPTA_EXPORT_DIR"/"$export_date"/.zip/"
+unzip $COMPTA_EXPORT_DIR"/"$export_date"/.zip/"$export_date"_24eme_pieces-comptables.zip" > /dev/null
+echo "Pièces exportées : "$COMPTA_EXPORT_DIR"/"$export_date" et "$COMPTA_EXPORT_DIR"/"$export_date"/.zip/"$export_date"_24eme_pieces-comptables.zip"
+fi
