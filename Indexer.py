@@ -342,6 +342,18 @@ class Indexer(object):
 
         return True
 
+
+    @staticmethod
+    def clean_amont(mystring):
+        try:
+            mystring = mystring.replace(' ', '')
+            mystring = mystring.replace('€', '')
+            mystring = mystring.replace(',', '.')
+            myfloat = float(mystring)
+        except AttributeError:
+            myfloat = mystring
+        return "%0.2f"  % abs(myfloat)
+
     @staticmethod
     def consolidate(conn):
         res = conn.execute("SELECT id, date, raw, amount, label FROM pdf_banque");
@@ -354,9 +366,9 @@ class Indexer(object):
 
         for row in res:
             if row['raw']:
-                proof2banqueid[re.sub(r'  *', ' ', row['raw']) + 'ø' + row['date'] + "ø%0.2f"  % (abs(float(row['amount'])))] = row['id'];
+                proof2banqueid[re.sub(r'  *', ' ', row['raw']) + 'ø' + row['date'] + "ø"  + Indexer.clean_amont(row['amount'])] = row['id'];
             if row['label']:
-                proof2banqueid[re.sub(r'  *', ' ', row['label']) + 'ø' +  row['date'] + "ø%0.2f"  % (abs(float(row['amount'])))] = row['id'];
+                proof2banqueid[re.sub(r'  *', ' ', row['label']) + 'ø' +  row['date'] + "ø" + Indexer.clean_amont(row['amount'])] = row['id'];
 
         md52pid = {}
         res = conn.execute("SELECT id, paiement_proof, paiement_date, paiement_amount, facture_prix_ttc, fullpath, md5, piece_category FROM pdf_piece")
@@ -373,11 +385,11 @@ class Indexer(object):
             if row['paiement_amount']:
                 try:
                     for p in row['paiement_amount'].split('|'):
-                        paiements.append("%0.2f"  % (abs(float(p))))
+                        paiements.append(Indexer.clean_amont(p))
                 except AttributeError:
-                    paiements.append("%0.2f"  % abs(row['paiement_amount']))
+                    paiements.append(Indexer.clean_amont(row['paiement_amount']))
             elif row['facture_prix_ttc']:
-                paiements.append("%0.2f"  % (abs(float(row['facture_prix_ttc']))))
+                paiements.append(Indexer.clean_amont(row['facture_prix_ttc']))
             if len(paiements) < 1:
                 continue
             if len(proofs) > 1 and len(proofs) != len(dates):

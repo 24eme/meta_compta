@@ -1,4 +1,5 @@
 from django.db import models
+from Indexer import Indexer
 
 class Banque(models.Model):
     date = models.DateField(null=True)
@@ -37,7 +38,7 @@ class Banque(models.Model):
         return False
 
     def amount_abs(self):
-        return abs(self.amount)
+        return Indexer.clean_amont(self.amount)
 
 
 class Piece(models.Model):
