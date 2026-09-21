@@ -12,7 +12,7 @@ exercice=$(date -d "$export_date $COMPTA_EXERCICE_DATE_AGO" "+%Y")
 
 curl -s http://$COMPTA_BIND/update > /dev/null
 
-echo "SELECT fullpath FROM pdf_piece WHERE compta_exercice = \""$exercice"\" AND compta_export_date IS NULL;" | sqlite3 db/database.sqlite | while read pdf;
+echo "SELECT fullpath FROM pdf_piece WHERE compta_exercice = \""$exercice"\" AND facture_date <= \""$export_date"\" AND compta_export_date IS NULL;" | sqlite3 db/database.sqlite | while read pdf;
 do
 	cp "$pdf" /tmp/pdf
 	echo "InfoBegin" > .meta.tmp
