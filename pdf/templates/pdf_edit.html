@@ -67,7 +67,7 @@
     {% endif %}
   </p>
   <p class="px-5"><a class="btn" href="#" onclick="sendNewMeta('paiement:date','{{ banque.date|date:"Y-m-d" }}');return false;"><span class="text-muted">paiement:date</span><br/>{{ banque.date|date:"Y-m-d" }} <span class="text-muted"> 📤 </span></a></p>
-  <p class="px-5"><a class="btn" href="#" onclick="sendNewMeta('paiement:proof','{{ banque.raw }}');return false;"><span class="text-muted">paiement:proof</span><br/>{{ banque.raw }} <span class="text-muted"> 📤 </span></a></p>
+  <p class="px-5"><a class="btn" href="#" onclick="sendNewMeta('paiement:proof','{{ banque.raw | escapejs }}');return false;"><span class="text-muted">paiement:proof</span><br/>{{ banque.raw }} <span class="text-muted"> 📤 </span></a></p>
 {% if  file.piece_id and file.piece and banque.amount_abs != file.piece.facture_prix_ttc %}
   <p class="px-5"><a class="btn" href="#" onclick="sendNewMeta('paiement:amount','{{ banque.amount_abs }}');return false;"><span class="text-muted">paiement:amount</span><br/>{{ banque.amount_abs|floatformat:2 }}<span class="text-muted"> 📤 </span></a></p>
 {% endif %}
